@@ -82,6 +82,7 @@ def render(frame):
         lines.append("".join(cells))
     return "\n".join(lines) + "\x1b[0m"
 
-cols, rows = grid(*probe_size(sys.argv[1]))
-frame = read_frame(sys.argv[1], 3, cols, rows)
-print(render(frame))
+if __name__ == "__main__":
+    cols, rows = grid(*probe_size(sys.argv[1]))
+    frame = read_frame(sys.argv[1], 3, cols, rows)
+    print(render(frame))
