@@ -1,4 +1,5 @@
-use std::net::{TcpListener, TcpStream};
+use std::io::Write;
+use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 use std::thread::{sleep, spawn};
 use std::time::{Duration, Instant};
@@ -17,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rows = (cols as f64 * info.height as f64 / info.width as f64 * 0.5).round() as u16;
     let mut greeting = Vec::new();
     hello(&mut greeting, cols, rows, info.fps_num, info.fps_den);
-    let broadcast = Arc::new(Mutex::new(Broadcast::<TcpStream>::new(greeting)));
+    let broadcast = Arc::new(Mutex::new(Broadcast::<Box<dyn Write + Send>>::new(greeting)));
     let listener = TcpListener::bind(ADDR)?;
     eprintln!("listening on {ADDR}");
     let accepting = Arc::clone(&broadcast);
@@ -27,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 eprintln!("client {peer}");
             }
             stream.set_write_timeout(Some(WRITE_TIMEOUT)).expect("timeout is non-zero");
-            accepting.lock().unwrap().add(stream);
+            accepting.lock().unwrap().add(Box::new(stream));
         }
     });
     let mut buf = vec![0; cols as usize * rows as usize * 3];
