@@ -28,19 +28,22 @@ def render_into(out, frame, ramp, shift):
     pr = pg = pb = -1
     for y in range(rows):
         for x in range(cols):
-            r = np.int32(frame[y, x, 0]) >> shift << shift | half
-            g = np.int32(frame[y, x, 1]) >> shift << shift | half
-            b = np.int32(frame[y, x, 2]) >> shift << shift | half
-            if r != pr or g != pg or b != pb:
+            r = np.int32(frame[y, x, 0])
+            g = np.int32(frame[y, x, 1])
+            b = np.int32(frame[y, x, 2])
+            qr = r >> shift << shift | half
+            qg = g >> shift << shift | half
+            qb = b >> shift << shift | half
+            if qr != pr or qg != pg or qb != pb:
                 out[n:n + 7] = np.array([27, 91, 51, 56, 59, 50, 59], np.uint8)
-                n = put_decimal(out, n + 7, r)
+                n = put_decimal(out, n + 7, qr)
                 out[n] = 59
-                n = put_decimal(out, n + 1, g)
+                n = put_decimal(out, n + 1, qg)
                 out[n] = 59
-                n = put_decimal(out, n + 1, b)
+                n = put_decimal(out, n + 1, qb)
                 out[n] = 109
                 n += 1
-                pr, pg, pb = r, g, b
+                pr, pg, pb = qr, qg, qb
             out[n] = ramp[((54 * r + 183 * g + 19 * b) >> 8) * levels >> 8]
             n += 1
         out[n] = 10
