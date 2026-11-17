@@ -8,6 +8,7 @@ use server::protocol::hello;
 use server::video::{frames, probe};
 
 const ADDR: &str = "127.0.0.1:7878";
+const WRITE_TIMEOUT: Duration = Duration::from_millis(250);
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args().nth(1).ok_or("usage: server <video>")?;
@@ -25,6 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Ok(peer) = stream.peer_addr() {
                 eprintln!("client {peer}");
             }
+            stream.set_write_timeout(Some(WRITE_TIMEOUT)).expect("timeout is non-zero");
             accepting.lock().unwrap().add(stream);
         }
     });
@@ -35,7 +37,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let mut video = frames(&path, cols, rows)?;
         while video.read(&mut buf)? {
-            broadcast.lock().unwrap().frame(&buf);
+            let dropped = broadcast.lock().unwrap().frame(&buf);
+            if dropped > 0 {
+                eprintln!("dropped {dropped} slow client(s)");
+            }
             count += 1;
             if let Some(wait) = (start + frame_time * count).checked_duration_since(Instant::now()) {
                 sleep(wait);

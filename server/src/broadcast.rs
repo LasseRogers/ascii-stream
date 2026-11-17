@@ -22,7 +22,7 @@ impl<W: Write> Broadcast<W> {
         self.clients.push(Client { out, synced: false });
     }
 
-    pub fn frame(&mut self, rgb: &[u8]) {
+    pub fn frame(&mut self, rgb: &[u8]) -> usize {
         let cells = to_cells(rgb);
         let mut sync = self.hello.clone();
         key(&mut sync, &cells);
@@ -30,11 +30,13 @@ impl<W: Write> Broadcast<W> {
         if let Some(prev) = &self.prev {
             delta(&mut update, prev, &cells);
         }
+        let before = self.clients.len();
         self.clients.retain_mut(|c| {
             let message = if c.synced { &update } else { &sync };
             c.synced = true;
             c.out.write_all(message).is_ok()
         });
         self.prev = Some(cells);
+        before - self.clients.len()
     }
 }
