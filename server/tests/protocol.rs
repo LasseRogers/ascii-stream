@@ -43,3 +43,18 @@ fn matches_golden_stream() {
     encode(&mut out, &rgb, 8, 4, 30, 1);
     assert_eq!(out, std::fs::read("../testdata/stream.bin").unwrap());
 }
+
+#[test]
+fn decodes_golden_cells() {
+    let stream = std::fs::read("../testdata/stream.bin").unwrap();
+    let mut input = stream.as_slice();
+    let mut cells = vec![0u16; 8 * 4];
+    let mut decoded = Vec::new();
+    while let Some((kind, payload)) = read_message(&mut input).unwrap() {
+        if kind == KEY || kind == DELTA {
+            apply(&mut cells, kind, &payload);
+            decoded.extend(cells.iter().flat_map(|c| c.to_le_bytes()));
+        }
+    }
+    assert_eq!(decoded, std::fs::read("../testdata/cells.bin").unwrap());
+}

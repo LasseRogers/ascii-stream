@@ -76,3 +76,31 @@ pub fn encode(out: &mut Vec<u8>, rgb: &[u8], cols: u16, rows: u16, fps_num: u16,
         encoder.frame(out, frame);
     }
 }
+
+pub fn read_message(input: &mut impl std::io::Read) -> std::io::Result<Option<(u8, Vec<u8>)>> {
+    let mut header = [0; 5];
+    match input.read_exact(&mut header) {
+        Ok(()) => {}
+        Err(e) if e.kind() == std::io::ErrorKind::UnexpectedEof => return Ok(None),
+        Err(e) => return Err(e),
+    }
+    let length = u32::from_le_bytes(header[1..].try_into().unwrap()) as usize;
+    let mut payload = vec![0; length];
+    input.read_exact(&mut payload)?;
+    Ok(Some((header[0], payload)))
+}
+
+pub fn apply(cells: &mut [u16], kind: u8, payload: &[u8]) {
+    let mut values = payload.as_chunks::<2>().0.iter().map(|b| u16::from_le_bytes(*b));
+    match kind {
+        KEY => cells.iter_mut().zip(values).for_each(|(c, v)| *c = v),
+        DELTA => {
+            while let (Some(start), Some(count)) = (values.next(), values.next()) {
+                for c in &mut cells[start as usize..][..count as usize] {
+                    *c = values.next().unwrap_or(0);
+                }
+            }
+        }
+        _ => {}
+    }
+}
