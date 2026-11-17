@@ -1,11 +1,24 @@
-const canvas = document.querySelector<HTMLCanvasElement>("#screen");
-const ctx = canvas?.getContext("2d");
-if (!canvas || !ctx) throw new Error("canvas not available");
+import { CanvasScreen } from "./canvas.ts";
+import { apply, DELTA, HELLO, KEY, messages, parseHello } from "./protocol.ts";
 
-canvas.width = 320;
-canvas.height = 40;
-ctx.fillStyle = "#000";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.fillStyle = "#0f0";
-ctx.font = "16px monospace";
-ctx.fillText("hello from main.ts", 8, 24);
+const canvas = document.querySelector<HTMLCanvasElement>("#screen");
+if (!canvas) throw new Error("canvas not found");
+
+const socket = new WebSocket(`ws://${location.hostname}:7879`);
+socket.binaryType = "arraybuffer";
+
+let cells = new Uint16Array(0);
+let screen: CanvasScreen | undefined;
+
+socket.addEventListener("message", (event) => {
+  for (const [kind, payload] of messages(new Uint8Array(event.data as ArrayBuffer))) {
+    if (kind === HELLO) {
+      const hello = parseHello(payload);
+      cells = new Uint16Array(hello.cols * hello.rows);
+      screen = new CanvasScreen(canvas, hello.cols, hello.rows);
+    } else if (kind === KEY || kind === DELTA) {
+      apply(cells, kind, payload);
+    }
+  }
+  screen?.draw(cells);
+});
