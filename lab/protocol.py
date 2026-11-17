@@ -57,3 +57,12 @@ def delta_runs(prev, cells):
 
 def delta(prev, cells):
     return message(DELTA, delta_runs(prev, cells).astype("<u2").tobytes())
+
+
+def encode(frames, cols, rows, fps_num, fps_den):
+    yield hello(cols, rows, fps_num, fps_den)
+    prev = None
+    for frame in frames:
+        cells = to_cells(frame)
+        yield key(cells) if prev is None else delta(prev, cells)
+        prev = cells
