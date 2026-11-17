@@ -6,7 +6,7 @@ from numba import njit
 from kernel import RAMP
 
 HELLO, KEY, DELTA = 1, 2, 3
-VERSION = 1
+VERSION = 2
 
 
 @njit(cache=True)
@@ -28,8 +28,9 @@ def message(kind, payload):
     return struct.pack("<BI", kind, len(payload)) + payload
 
 
-def hello(cols, rows, fps_num, fps_den):
-    return message(HELLO, struct.pack("<BHHHH", VERSION, cols, rows, fps_num, fps_den))
+def hello(cols, rows, fps_num, fps_den, frame=0):
+    payload = struct.pack("<BHHHHI", VERSION, cols, rows, fps_num, fps_den, frame)
+    return message(HELLO, payload)
 
 
 def key(cells):
@@ -85,7 +86,7 @@ def decode(data):
         payload = data[pos + 5 : pos + 5 + length]
         pos += 5 + length
         if kind == HELLO:
-            version, cols, rows, _, _ = struct.unpack("<BHHHH", payload)
+            version, cols, rows, _, _, _ = struct.unpack("<BHHHHI", payload)
             if version != VERSION:
                 raise ValueError(f"unsupported protocol version {version}")
             cells = np.zeros(cols * rows, np.uint16)
