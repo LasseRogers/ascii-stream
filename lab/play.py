@@ -33,15 +33,30 @@ def frames(path, cols, rows):
     proc.wait()
 
 
+def probe_fps(path):
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=r_frame_rate", "-of", "csv=p=0", path],
+        check=True, capture_output=True, text=True,
+    ).stdout
+    num, den = out.strip().split("/")
+    return int(num) / int(den)
+
+
 if __name__ == "__main__":
-    cols, rows = grid(*probe_size(sys.argv[1]))
+    path = sys.argv[1]
+    cols, rows = grid(*probe_size(path))
+    fps = probe_fps(path)
     out = sys.stdout.buffer
+    out.write(b"\x1b[2J")
     start = time.perf_counter()
     count = 0
-    out.write(b"\x1b[2J")
-    for frame in frames(sys.argv[1], cols, rows):
+    for frame in frames(path, cols, rows):
         out.write(b"\x1b[H" + render(frame))
         out.flush()
         count += 1
+        delay = start + count / fps - time.perf_counter()
+        if delay > 0:
+            time.sleep(delay)
     elapsed = time.perf_counter() - start
-    print(f"\n{count} frames, {count / elapsed:.1f} fps")
+    print(f"\n{count} frames in {elapsed:.2f} s, {count / elapsed:.1f} fps")
