@@ -66,3 +66,32 @@ def encode(frames, cols, rows, fps_num, fps_den):
         cells = to_cells(frame)
         yield key(cells) if prev is None else delta(prev, cells)
         prev = cells
+
+
+@njit(cache=True)
+def apply_runs(cells, runs):
+    i = 0
+    while i < runs.size:
+        start, count = runs[i], runs[i + 1]
+        cells[start:start + count] = runs[i + 2:i + 2 + count]
+        i += 2 + count
+
+
+def decode(data):
+    pos = 0
+    cells = None
+    while pos < len(data):
+        kind, length = struct.unpack_from("<BI", data, pos)
+        payload = data[pos + 5:pos + 5 + length]
+        pos += 5 + length
+        if kind == HELLO:
+            version, cols, rows, _, _ = struct.unpack("<BHHHH", payload)
+            if version != VERSION:
+                raise ValueError(f"unsupported protocol version {version}")
+            cells = np.zeros(cols * rows, np.uint16)
+        elif kind == KEY:
+            cells[:] = np.frombuffer(payload, "<u2")
+            yield cells.copy()
+        elif kind == DELTA:
+            apply_runs(cells, np.frombuffer(payload, "<u2"))
+            yield cells.copy()
