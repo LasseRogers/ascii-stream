@@ -35,3 +35,11 @@ fn delta_bytes() {
         ]
     );
 }
+
+#[test]
+fn matches_golden_stream() {
+    let rgb = std::fs::read("../testdata/input.rgb").unwrap();
+    let mut out = Vec::new();
+    encode(&mut out, &rgb, 8, 4, 30, 1);
+    assert_eq!(out, std::fs::read("../testdata/stream.bin").unwrap());
+}

@@ -52,3 +52,16 @@ pub fn delta(out: &mut Vec<u8>, prev: &[u16], cells: &[u16]) {
     }
     message(out, DELTA, &payload);
 }
+
+pub fn encode(out: &mut Vec<u8>, rgb: &[u8], cols: u16, rows: u16, fps_num: u16, fps_den: u16) {
+    hello(out, cols, rows, fps_num, fps_den);
+    let mut prev: Option<Vec<u16>> = None;
+    for frame in rgb.chunks_exact(cols as usize * rows as usize * 3) {
+        let cells = to_cells(frame);
+        match &prev {
+            None => key(out, &cells),
+            Some(p) => delta(out, p, &cells),
+        }
+        prev = Some(cells);
+    }
+}
