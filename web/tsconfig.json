@@ -6,7 +6,9 @@
     "lib": ["es2023", "dom"],
     "strict": true,
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
   },
   "include": ["src"]
 }
