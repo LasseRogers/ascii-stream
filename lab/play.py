@@ -45,6 +45,7 @@ def probe_fps(path):
 
 if __name__ == "__main__":
     path = sys.argv[1]
+    shift = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     cols, rows = grid(*probe_size(path))
     fps = probe_fps(path)
     out = sys.stdout.buffer
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     start = time.perf_counter()
     count = 0
     for frame in frames(path, cols, rows):
-        out.write(b"\x1b[H" + render(frame))
+        out.write(b"\x1b[H" + render(frame, shift))
         out.flush()
         count += 1
         delay = start + count / fps - time.perf_counter()
