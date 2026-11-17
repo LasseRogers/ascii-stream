@@ -34,3 +34,26 @@ def hello(cols, rows, fps_num, fps_den):
 
 def key(cells):
     return message(KEY, cells.astype("<u2").tobytes())
+
+
+@njit(cache=True)
+def delta_runs(prev, cells):
+    out = np.empty(cells.size * 3, np.uint16)
+    n = 0
+    i = 0
+    while i < cells.size:
+        if cells[i] == prev[i]:
+            i += 1
+            continue
+        start = i
+        while i < cells.size and cells[i] != prev[i]:
+            i += 1
+        out[n] = start
+        out[n + 1] = i - start
+        out[n + 2:n + 2 + i - start] = cells[start:i]
+        n += 2 + i - start
+    return out[:n]
+
+
+def delta(prev, cells):
+    return message(DELTA, delta_runs(prev, cells).astype("<u2").tobytes())
