@@ -56,3 +56,14 @@ def render(frame, shift=0):
     out = np.empty(rows * (cols * CELL_MAX + 1), np.uint8)
     n = render_into(out, frame, RAMP, shift)
     return out[:n].tobytes() + b"\x1b[0m"
+
+
+@njit(cache=True)
+def put_move(out, n, y, x):
+    out[n] = 27
+    out[n + 1] = 91
+    n = put_decimal(out, n + 2, y + 1)
+    out[n] = 59
+    n = put_decimal(out, n + 1, x + 1)
+    out[n] = 72
+    return n + 1
