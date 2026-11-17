@@ -15,42 +15,6 @@ def put_decimal(out, n, value):
 
 
 RAMP = np.frombuffer(b" .:-=+*#%@", np.uint8)
-# Widest cell: "\x1b[38;2;255;255;255m" plus the glyph.
-CELL_MAX = 20
-
-
-@njit(cache=True)
-def render_into(out, frame, ramp, shift):
-    rows, cols, _ = frame.shape
-    levels = len(ramp)
-    half = (1 << shift) >> 1
-    n = 0
-    pr = pg = pb = -1
-    for y in range(rows):
-        for x in range(cols):
-            r = np.int32(frame[y, x, 0])
-            g = np.int32(frame[y, x, 1])
-            b = np.int32(frame[y, x, 2])
-            qr = r >> shift << shift | half
-            qg = g >> shift << shift | half
-            qb = b >> shift << shift | half
-            if qr != pr or qg != pg or qb != pb:
-                n = put_colour(out, n, qr, qg, qb)
-                pr, pg, pb = qr, qg, qb
-            out[n] = ramp[((54 * r + 183 * g + 19 * b) >> 8) * levels >> 8]
-            n += 1
-        out[n] = 10
-        n += 1
-    return n
-
-
-def render(frame, shift=0):
-    rows, cols, _ = frame.shape
-    out = np.empty(rows * (cols * CELL_MAX + 1), np.uint8)
-    n = render_into(out, frame, RAMP, shift)
-    return out[:n].tobytes() + b"\x1b[0m"
-
-
 @njit(cache=True)
 def put_move(out, n, y, x):
     out[n] = 27
