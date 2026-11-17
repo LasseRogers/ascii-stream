@@ -104,3 +104,18 @@ def delta_into(out, frame, prev, ramp, shift):
             n += 1
             cy, cx = y, x + 1
     return n
+
+
+# Move "\x1b[999;999H" + colour escape + glyph.
+DELTA_CELL_MAX = 30
+
+
+class Delta:
+    def __init__(self, rows, cols, shift=4):
+        self.prev = np.full((rows, cols, 4), -1, np.int32)
+        self.out = np.empty(rows * cols * DELTA_CELL_MAX, np.uint8)
+        self.shift = shift
+
+    def __call__(self, frame):
+        n = delta_into(self.out, frame, self.prev, RAMP, self.shift)
+        return self.out[:n].tobytes()
