@@ -19,3 +19,19 @@ fn key_bytes() {
     key(&mut out, &[0x0000, 0xfff9, 0xf002]);
     assert_eq!(out, [2, 6, 0, 0, 0, 0, 0, 0xf9, 0xff, 0x02, 0xf0]);
 }
+
+#[test]
+fn delta_bytes() {
+    let prev = [0u16; 5];
+    let cells = [0, 0x1111, 0x2222, 0, 0x4444];
+    let mut out = Vec::new();
+    delta(&mut out, &prev, &cells);
+    delta(&mut out, &prev, &prev);
+    assert_eq!(
+        out,
+        [
+            3, 14, 0, 0, 0, 1, 0, 2, 0, 0x11, 0x11, 0x22, 0x22, 4, 0, 1, 0, 0x44, 0x44,
+            3, 0, 0, 0, 0,
+        ]
+    );
+}
