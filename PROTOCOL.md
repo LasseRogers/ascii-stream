@@ -24,3 +24,10 @@ into ` .:-=+*#%@`.
   (`y * cols + x`), count u16, then `count` cells.
 
 The server sends a KEY to each client before any DELTA.
+
+## Transports
+
+- TCP (server default port 7878): the stream as raw bytes.
+- WebSocket (server default port 7879): the stream in binary messages. Each
+  WebSocket message holds one or more whole protocol messages, never part of
+  one. Joined in order, they are exactly the TCP byte stream.
