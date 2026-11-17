@@ -4,7 +4,8 @@ import time
 
 import numpy as np
 
-from still import grid, probe_size, render
+from kernel import render
+from still import grid, probe_size
 
 
 def frames(path, cols, rows):
@@ -34,12 +35,13 @@ def frames(path, cols, rows):
 
 if __name__ == "__main__":
     cols, rows = grid(*probe_size(sys.argv[1]))
+    out = sys.stdout.buffer
     start = time.perf_counter()
     count = 0
-    sys.stdout.write("\x1b[2J")
+    out.write(b"\x1b[2J")
     for frame in frames(sys.argv[1], cols, rows):
-        sys.stdout.write("\x1b[H" + render(frame))
-        sys.stdout.flush()
+        out.write(b"\x1b[H" + render(frame))
+        out.flush()
         count += 1
     elapsed = time.perf_counter() - start
     print(f"\n{count} frames, {count / elapsed:.1f} fps")
