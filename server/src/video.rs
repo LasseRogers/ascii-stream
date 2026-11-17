@@ -1,5 +1,6 @@
 use std::error::Error;
-use std::process::Command;
+use std::io::{self, Read};
+use std::process::{Child, ChildStdout, Command, Stdio};
 
 #[derive(Debug)]
 pub struct Info {
@@ -27,4 +28,37 @@ pub fn probe(path: &str) -> Result<Info, Box<dyn Error>> {
         fps_num: next()?.parse()?,
         fps_den: next()?.parse()?,
     })
+}
+
+pub struct Frames {
+    child: Child,
+    stdout: ChildStdout,
+}
+
+pub fn frames(path: &str, cols: u16, rows: u16) -> io::Result<Frames> {
+    let mut child = Command::new("ffmpeg")
+        .args(["-v", "error", "-i", path])
+        .args(["-vf", &format!("scale={cols}:{rows}")])
+        .args(["-f", "rawvideo", "-pix_fmt", "rgb24", "-"])
+        .stdout(Stdio::piped())
+        .spawn()?;
+    let stdout = child.stdout.take().expect("stdout is piped");
+    Ok(Frames { child, stdout })
+}
+
+impl Frames {
+    pub fn read(&mut self, buf: &mut [u8]) -> io::Result<bool> {
+        match self.stdout.read_exact(buf) {
+            Ok(()) => Ok(true),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl Drop for Frames {
+    fn drop(&mut self) {
+        let _ = self.child.kill();
+        let _ = self.child.wait();
+    }
 }
