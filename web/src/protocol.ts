@@ -1,13 +1,14 @@
 export const HELLO = 1;
 export const KEY = 2;
 export const DELTA = 3;
-export const VERSION = 1;
+export const VERSION = 2;
 
 export interface Hello {
   cols: number;
   rows: number;
   fpsNum: number;
   fpsDen: number;
+  frame: number;
 }
 
 export function parseHello(payload: Uint8Array): Hello {
@@ -18,6 +19,7 @@ export function parseHello(payload: Uint8Array): Hello {
     rows: view.getUint16(3, true),
     fpsNum: view.getUint16(5, true),
     fpsDen: view.getUint16(7, true),
+    frame: view.getUint32(9, true),
   };
 }
 

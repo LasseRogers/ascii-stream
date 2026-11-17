@@ -12,7 +12,7 @@ test("decodes golden cells", () => {
   for (const [kind, payload] of messages(golden("stream.bin"))) {
     if (kind === HELLO) {
       const hello = parseHello(payload);
-      assert.deepEqual(hello, { cols: 8, rows: 4, fpsNum: 30, fpsDen: 1 });
+      assert.deepEqual(hello, { cols: 8, rows: 4, fpsNum: 30, fpsDen: 1, frame: 0 });
       cells = new Uint16Array(hello.cols * hello.rows);
     } else if (kind === KEY || kind === DELTA) {
       apply(cells, kind, payload);
