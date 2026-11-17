@@ -3,8 +3,13 @@
   <head>
     <meta charset="utf-8">
     <title>ASCII video</title>
+    <style>
+      body { margin: 0; display: flex; gap: 1vw; background: #000; }
+      video, canvas { width: 49vw; height: auto; }
+    </style>
   </head>
   <body>
+    <video id="source" src="/source.mp4" muted loop></video>
     <canvas id="screen"></canvas>
     <script type="module" src="/src/main.ts"></script>
   </body>
