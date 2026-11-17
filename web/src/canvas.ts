@@ -1,4 +1,6 @@
 const RAMP = " .:-=+*#%@";
+// Cell background brightness, as a fraction of the character colour.
+const BACKGROUND = 0.3;
 
 export class CanvasScreen {
   readonly #ctx: CanvasRenderingContext2D;
@@ -33,9 +35,9 @@ export class CanvasScreen {
       this.#shown[i] = cell;
       const x = (i % this.#cols) * this.#cellW;
       const y = Math.floor(i / this.#cols) * this.#cellH;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(x, y, this.#cellW, this.#cellH);
       const [r, g, b] = [cell >> 12, (cell >> 8) & 15, (cell >> 4) & 15].map((v) => v * 16 + 8);
+      ctx.fillStyle = `rgb(${r * BACKGROUND} ${g * BACKGROUND} ${b * BACKGROUND})`;
+      ctx.fillRect(x, y, this.#cellW, this.#cellH);
       ctx.fillStyle = `rgb(${r} ${g} ${b})`;
       ctx.fillText(RAMP[cell & 15], x, y + this.#cellH / 2);
     }
