@@ -12,3 +12,15 @@ def glyph_indices(frame, levels):
             luma = (54 * r + 183 * g + 19 * b) >> 8
             out[y, x] = luma * levels >> 8
     return out
+
+
+@njit(cache=True)
+def put_decimal(out, n, value):
+    if value >= 100:
+        out[n] = 48 + value // 100
+        n += 1
+    if value >= 10:
+        out[n] = 48 + value // 10 % 10
+        n += 1
+    out[n] = 48 + value % 10
+    return n + 1
