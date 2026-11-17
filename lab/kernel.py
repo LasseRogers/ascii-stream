@@ -20,16 +20,17 @@ CELL_MAX = 20
 
 
 @njit(cache=True)
-def render_into(out, frame, ramp):
+def render_into(out, frame, ramp, shift):
     rows, cols, _ = frame.shape
     levels = len(ramp)
+    half = (1 << shift) >> 1
     n = 0
     pr = pg = pb = -1
     for y in range(rows):
         for x in range(cols):
-            r = np.int32(frame[y, x, 0])
-            g = np.int32(frame[y, x, 1])
-            b = np.int32(frame[y, x, 2])
+            r = np.int32(frame[y, x, 0]) >> shift << shift | half
+            g = np.int32(frame[y, x, 1]) >> shift << shift | half
+            b = np.int32(frame[y, x, 2]) >> shift << shift | half
             if r != pr or g != pg or b != pb:
                 out[n:n + 7] = np.array([27, 91, 51, 56, 59, 50, 59], np.uint8)
                 n = put_decimal(out, n + 7, r)
@@ -47,8 +48,8 @@ def render_into(out, frame, ramp):
     return n
 
 
-def render(frame):
+def render(frame, shift=0):
     rows, cols, _ = frame.shape
     out = np.empty(rows * (cols * CELL_MAX + 1), np.uint8)
-    n = render_into(out, frame, RAMP)
+    n = render_into(out, frame, RAMP, shift)
     return out[:n].tobytes() + b"\x1b[0m"
