@@ -6,11 +6,16 @@
     <style>
       body { margin: 0; display: flex; gap: 1vw; background: #000; }
       video, canvas { width: 49vw; height: auto; }
+      #stream { position: relative; }
+      #stats { position: absolute; top: 0; left: 0; margin: 0; padding: 4px 8px; color: #0f0; background: rgb(0 0 0 / 60%); font: 12px monospace; }
     </style>
   </head>
   <body>
     <video id="source" src="/source.mp4" muted loop></video>
-    <canvas id="screen"></canvas>
+    <div id="stream">
+      <canvas id="screen"></canvas>
+      <pre id="stats"></pre>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
