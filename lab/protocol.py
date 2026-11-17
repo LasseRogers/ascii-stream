@@ -30,3 +30,7 @@ def message(kind, payload):
 
 def hello(cols, rows, fps_num, fps_den):
     return message(HELLO, struct.pack("<BHHHH", VERSION, cols, rows, fps_num, fps_den))
+
+
+def key(cells):
+    return message(KEY, cells.astype("<u2").tobytes())
