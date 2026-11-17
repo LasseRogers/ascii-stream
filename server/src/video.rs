@@ -37,7 +37,7 @@ pub struct Frames {
 
 pub fn frames(path: &str, cols: u16, rows: u16) -> io::Result<Frames> {
     let mut child = Command::new("ffmpeg")
-        .args(["-v", "error", "-i", path])
+        .args(["-v", "fatal", "-i", path])
         .args(["-vf", &format!("scale={cols}:{rows}")])
         .args(["-f", "rawvideo", "-pix_fmt", "rgb24", "-"])
         .stdout(Stdio::piped())
