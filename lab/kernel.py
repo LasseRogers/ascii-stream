@@ -35,14 +35,7 @@ def render_into(out, frame, ramp, shift):
             qg = g >> shift << shift | half
             qb = b >> shift << shift | half
             if qr != pr or qg != pg or qb != pb:
-                out[n:n + 7] = np.array([27, 91, 51, 56, 59, 50, 59], np.uint8)
-                n = put_decimal(out, n + 7, qr)
-                out[n] = 59
-                n = put_decimal(out, n + 1, qg)
-                out[n] = 59
-                n = put_decimal(out, n + 1, qb)
-                out[n] = 109
-                n += 1
+                n = put_colour(out, n, qr, qg, qb)
                 pr, pg, pb = qr, qg, qb
             out[n] = ramp[((54 * r + 183 * g + 19 * b) >> 8) * levels >> 8]
             n += 1
@@ -66,4 +59,16 @@ def put_move(out, n, y, x):
     out[n] = 59
     n = put_decimal(out, n + 1, x + 1)
     out[n] = 72
+    return n + 1
+
+
+@njit(cache=True)
+def put_colour(out, n, r, g, b):
+    out[n:n + 7] = np.array([27, 91, 51, 56, 59, 50, 59], np.uint8)
+    n = put_decimal(out, n + 7, r)
+    out[n] = 59
+    n = put_decimal(out, n + 1, g)
+    out[n] = 59
+    n = put_decimal(out, n + 1, b)
+    out[n] = 109
     return n + 1
