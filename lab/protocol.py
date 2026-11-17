@@ -50,7 +50,7 @@ def delta_runs(prev, cells):
             i += 1
         out[n] = start
         out[n + 1] = i - start
-        out[n + 2:n + 2 + i - start] = cells[start:i]
+        out[n + 2 : n + 2 + i - start] = cells[start:i]
         n += 2 + i - start
     return out[:n]
 
@@ -73,7 +73,7 @@ def apply_runs(cells, runs):
     i = 0
     while i < runs.size:
         start, count = runs[i], runs[i + 1]
-        cells[start:start + count] = runs[i + 2:i + 2 + count]
+        cells[start : start + count] = runs[i + 2 : i + 2 + count]
         i += 2 + count
 
 
@@ -82,7 +82,7 @@ def decode(data):
     cells = None
     while pos < len(data):
         kind, length = struct.unpack_from("<BI", data, pos)
-        payload = data[pos + 5:pos + 5 + length]
+        payload = data[pos + 5 : pos + 5 + length]
         pos += 5 + length
         if kind == HELLO:
             version, cols, rows, _, _ = struct.unpack("<BHHHH", payload)

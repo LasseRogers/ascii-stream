@@ -15,6 +15,8 @@ def put_decimal(out, n, value):
 
 
 RAMP = np.frombuffer(b" .:-=+*#%@", np.uint8)
+
+
 @njit(cache=True)
 def put_move(out, n, y, x):
     out[n] = 27
@@ -28,7 +30,7 @@ def put_move(out, n, y, x):
 
 @njit(cache=True)
 def put_colour(out, n, r, g, b):
-    out[n:n + 7] = np.array([27, 91, 51, 56, 59, 50, 59], np.uint8)
+    out[n : n + 7] = np.array([27, 91, 51, 56, 59, 50, 59], np.uint8)
     n = put_decimal(out, n + 7, r)
     out[n] = 59
     n = put_decimal(out, n + 1, g)

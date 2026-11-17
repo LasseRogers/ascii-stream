@@ -35,9 +35,21 @@ def frames(path, cols, rows):
 
 def probe_fps(path):
     out = subprocess.run(
-        ["ffprobe", "-v", "error", "-select_streams", "v:0",
-         "-show_entries", "stream=r_frame_rate", "-of", "csv=p=0", path],
-        check=True, capture_output=True, text=True,
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=r_frame_rate",
+            "-of",
+            "csv=p=0",
+            path,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout
     num, den = out.strip().split("/")
     return int(num) / int(den)
