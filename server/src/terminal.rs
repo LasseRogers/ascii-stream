@@ -9,7 +9,10 @@ pub struct Screen {
 
 impl Screen {
     pub fn new(cols: usize, rows: usize) -> Self {
-        Self { cols, shown: vec![u16::MAX; cols * rows] }
+        Self {
+            cols,
+            shown: vec![u16::MAX; cols * rows],
+        }
     }
 
     pub fn draw(&mut self, out: &mut Vec<u8>, cells: &[u16]) {
@@ -25,7 +28,8 @@ impl Screen {
             }
             if cell >> 4 != colour {
                 colour = cell >> 4;
-                let [r, g, b] = [cell >> 12, (cell >> 8) & 15, (cell >> 4) & 15].map(|v| v * 16 + 8);
+                let [r, g, b] =
+                    [cell >> 12, (cell >> 8) & 15, (cell >> 4) & 15].map(|v| v * 16 + 8);
                 write!(out, "\x1b[38;2;{r};{g};{b}m").unwrap();
             }
             out.push(RAMP[(cell & 15) as usize]);

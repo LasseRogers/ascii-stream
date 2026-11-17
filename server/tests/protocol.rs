@@ -9,8 +9,13 @@ fn packs_colour_and_glyph() {
 #[test]
 fn hello_bytes() {
     let mut out = Vec::new();
-    hello(&mut out, 160, 45, 30, 1);
-    assert_eq!(out, [1, 9, 0, 0, 0, 1, 0xa0, 0, 0x2d, 0, 0x1e, 0, 1, 0]);
+    hello(&mut out, 160, 45, 30, 1, 1234);
+    assert_eq!(
+        out,
+        [
+            1, 13, 0, 0, 0, 2, 0xa0, 0, 0x2d, 0, 0x1e, 0, 1, 0, 0xd2, 0x04, 0, 0
+        ]
+    );
 }
 
 #[test]

@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use crate::protocol::{delta, key, to_cells};
+use crate::protocol::{delta, hello, key, to_cells};
 
 struct Client<W> {
     out: W,
@@ -8,23 +8,29 @@ struct Client<W> {
 }
 
 pub struct Broadcast<W> {
-    hello: Vec<u8>,
+    format: [u16; 4],
     prev: Option<Vec<u16>>,
     clients: Vec<Client<W>>,
 }
 
 impl<W: Write> Broadcast<W> {
-    pub fn new(hello: Vec<u8>) -> Self {
-        Self { hello, prev: None, clients: Vec::new() }
+    pub fn new(cols: u16, rows: u16, fps_num: u16, fps_den: u16) -> Self {
+        Self {
+            format: [cols, rows, fps_num, fps_den],
+            prev: None,
+            clients: Vec::new(),
+        }
     }
 
     pub fn add(&mut self, out: W) {
         self.clients.push(Client { out, synced: false });
     }
 
-    pub fn frame(&mut self, rgb: &[u8]) -> usize {
+    pub fn frame(&mut self, rgb: &[u8], index: u32) -> usize {
         let cells = to_cells(rgb);
-        let mut sync = self.hello.clone();
+        let [cols, rows, fps_num, fps_den] = self.format;
+        let mut sync = Vec::new();
+        hello(&mut sync, cols, rows, fps_num, fps_den, index);
         key(&mut sync, &cells);
         let mut update = Vec::new();
         if let Some(prev) = &self.prev {

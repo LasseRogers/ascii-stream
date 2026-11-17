@@ -6,10 +6,12 @@ use server::protocol::{DELTA, HELLO, KEY, VERSION, apply, read_message};
 use server::terminal::Screen;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let addr = std::env::args().nth(1).unwrap_or_else(|| "127.0.0.1:7878".into());
+    let addr = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "127.0.0.1:7878".into());
     let mut input = BufReader::new(TcpStream::connect(&addr)?);
     let (kind, hello) = read_message(&mut input)?.ok_or("stream ended before HELLO")?;
-    if kind != HELLO || hello.len() < 9 || hello[0] != VERSION {
+    if kind != HELLO || hello.len() < 13 || hello[0] != VERSION {
         return Err("expected HELLO, protocol version 1".into());
     }
     let cols = u16::from_le_bytes([hello[1], hello[2]]) as usize;
@@ -25,7 +27,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn play(input: &mut impl Read, stdout: &mut impl Write, cols: usize, rows: usize) -> std::io::Result<()> {
+fn play(
+    input: &mut impl Read,
+    stdout: &mut impl Write,
+    cols: usize,
+    rows: usize,
+) -> std::io::Result<()> {
     let mut cells = vec![0; cols * rows];
     let mut screen = Screen::new(cols, rows);
     let mut out = Vec::new();

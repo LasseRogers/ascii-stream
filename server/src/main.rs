@@ -5,7 +5,6 @@ use std::thread::{sleep, spawn};
 use std::time::{Duration, Instant};
 
 use server::broadcast::Broadcast;
-use server::protocol::hello;
 use server::video::{frames, probe};
 use server::websocket::WsWriter;
 
@@ -18,9 +17,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let info = probe(&path)?;
     let cols: u16 = 160;
     let rows = (cols as f64 * info.height as f64 / info.width as f64 * 0.5).round() as u16;
-    let mut greeting = Vec::new();
-    hello(&mut greeting, cols, rows, info.fps_num, info.fps_den);
-    let broadcast = Arc::new(Mutex::new(Broadcast::<Box<dyn Write + Send>>::new(greeting)));
+    let broadcast = Arc::new(Mutex::new(Broadcast::<Box<dyn Write + Send>>::new(
+        cols,
+        rows,
+        info.fps_num,
+        info.fps_den,
+    )));
     let listener = TcpListener::bind(ADDR)?;
     eprintln!("listening on {ADDR}");
     let accepting = Arc::clone(&broadcast);
@@ -29,7 +31,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Ok(peer) = stream.peer_addr() {
                 eprintln!("client {peer}");
             }
-            stream.set_write_timeout(Some(WRITE_TIMEOUT)).expect("timeout is non-zero");
+            stream
+                .set_write_timeout(Some(WRITE_TIMEOUT))
+                .expect("timeout is non-zero");
             accepting.lock().unwrap().add(Box::new(stream));
         }
     });
@@ -43,13 +47,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut count = 0;
     loop {
         let mut video = frames(&path, cols, rows)?;
+        let mut index = 0;
         while video.read(&mut buf)? {
-            let dropped = broadcast.lock().unwrap().frame(&buf);
+            let dropped = broadcast.lock().unwrap().frame(&buf, index);
             if dropped > 0 {
                 eprintln!("dropped {dropped} client(s)");
             }
             count += 1;
-            if let Some(wait) = (start + frame_time * count).checked_duration_since(Instant::now()) {
+            index += 1;
+            if let Some(wait) = (start + frame_time * count).checked_duration_since(Instant::now())
+            {
                 sleep(wait);
             }
         }
@@ -60,8 +67,12 @@ type Shared = Arc<Mutex<Broadcast<Box<dyn Write + Send>>>>;
 
 fn accept_websockets(listener: TcpListener, broadcast: Shared) {
     for stream in listener.incoming().flatten() {
-        stream.set_read_timeout(Some(Duration::from_secs(5))).expect("timeout is non-zero");
-        stream.set_write_timeout(Some(WRITE_TIMEOUT)).expect("timeout is non-zero");
+        stream
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .expect("timeout is non-zero");
+        stream
+            .set_write_timeout(Some(WRITE_TIMEOUT))
+            .expect("timeout is non-zero");
         match WsWriter::accept(stream) {
             Ok(ws) => {
                 eprintln!("websocket client");

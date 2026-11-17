@@ -15,7 +15,9 @@ impl WsWriter {
 
 impl Write for WsWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.0.send(Message::binary(buf.to_vec())).map_err(io::Error::other)?;
+        self.0
+            .send(Message::binary(buf.to_vec()))
+            .map_err(io::Error::other)?;
         Ok(buf.len())
     }
 
