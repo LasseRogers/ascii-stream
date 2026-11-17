@@ -9,9 +9,10 @@ COLS = 160
 
 if __name__ == "__main__":
     path = sys.argv[1]
+    shift = int(sys.argv[2]) if len(sys.argv) > 2 else 4
     w, h = probe_size(path)
     rows = round(COLS * h / w * CELL_ASPECT)
-    sizes = [len(render(f)) for f in frames(path, COLS, rows)]
+    sizes = [len(render(f, shift)) for f in frames(path, COLS, rows)]
     mean = sum(sizes) / len(sizes)
     print(f"{COLS}x{rows}, {len(sizes)} frames")
     print(f"{mean / 1024:.1f} KiB per frame, {mean / (COLS * rows):.1f} B per cell")

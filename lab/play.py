@@ -45,7 +45,7 @@ def probe_fps(path):
 
 if __name__ == "__main__":
     path = sys.argv[1]
-    shift = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    shift = int(sys.argv[2]) if len(sys.argv) > 2 else 4
     cols, rows = grid(*probe_size(path))
     fps = probe_fps(path)
     out = sys.stdout.buffer
