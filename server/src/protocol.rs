@@ -5,10 +5,10 @@ pub const VERSION: u8 = 1;
 const LEVELS: u32 = 10;
 
 pub fn to_cells(rgb: &[u8]) -> Vec<u16> {
-    rgb.chunks_exact(3)
+    rgb.as_chunks::<3>().0.iter()
         .map(|p| {
             let (r, g, b) = (p[0] as u32, p[1] as u32, p[2] as u32);
-            let glyph = ((54 * r + 183 * g + 19 * b) >> 8) * LEVELS >> 8;
+            let glyph = (((54 * r + 183 * g + 19 * b) >> 8) * LEVELS) >> 8;
             ((r >> 4) << 12 | (g >> 4) << 8 | (b >> 4) << 4 | glyph) as u16
         })
         .collect()
